@@ -1,0 +1,37 @@
+name = "okacephoto-api"
+main = "worker/src/index.ts"
+compatibility_date = "2025-01-01"
+workers_dev = false
+
+# Bindings are configured in Cloudflare Dashboard.
+# The binding names here must match the code (DB, ASSETS_BUCKET).
+
+[[d1_databases]]
+binding = "DB"
+database_name = "okacephoto"
+database_id = "REPLACE_ME"
+
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "okacephoto-images"
+
+# Migrations directory for local `wrangler d1 migrations apply`
+migrations_dir = "worker/d1/migrations"
+
+[vars]
+# Non-secret variables (set these in Dashboard or via wrangler)
+COOKIE_NAME = "okacephoto_admin"
+COOKIE_DOMAIN = ".yourdomain.com"
+CORS_ALLOW_ORIGIN = "https://app.yourdomain.com"
+R2_PUBLIC_BASE_URL = "https://img.yourdomain.com"
+MAX_FILE_SIZE_BYTES = "10485760"
+ALLOWED_MIME = "image/jpeg,image/png,image/webp,image/gif,image/svg+xml,image/avif"
+
+LOGIN_RATE_MAX_ATTEMPTS = "10"
+LOGIN_RATE_WINDOW_SECONDS = "600"
+LOGIN_RATE_BLOCK_SECONDS = "900"
+
+# Secret env vars must be set as Worker Secrets in Dashboard (not committed):
+# AUTH_SHARED_PASSWORD
+# COOKIE_SIGNING_SECRET
+
