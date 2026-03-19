@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS assets (
 
 CREATE TABLE IF NOT EXISTS asset_tags (
   asset_id TEXT NOT NULL,
-  tag TEXT NOT NULL, -- normalized lowercase tag
+  tag TEXT NOT NULL,
   created_at INTEGER NOT NULL,
   PRIMARY KEY (asset_id, tag),
   FOREIGN KEY (asset_id) REFERENCES assets(id) ON DELETE CASCADE

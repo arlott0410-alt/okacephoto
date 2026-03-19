@@ -167,11 +167,16 @@ If you run locally, update `wrangler.toml` with your real `database_id` (D1) val
 Deploy the frontend with Cloudflare Pages:
 1. Dashboard -> **Pages** -> **Create**
 2. Connect repo
-3. Build command: `npm run build`
-4. Build output: for this repo, Pages should point at `frontend/dist`
-5. Set Pages environment variable:
+3. Set **Root directory** (สำคัญสำหรับ monorepo)
+   - Option A (แนะนำ): ตั้ง Root directory = `frontend`
+   - Option B: ตั้ง Root directory = `.` (repo root)
+4. Build command: `npm run build`
+5. Set **Build output directory** ให้ตรงกับ Root directory
+   - If Root directory = `frontend` => set Build output directory = `dist`
+   - If Root directory = `.` => set Build output directory = `frontend/dist`
+6. Set Pages environment variable:
    - `VITE_API_BASE_URL` = `https://api.yourdomain.com`
-6. This frontend uses `HashRouter`, so you do NOT need SPA rewrite rules for deep links.
+7. This frontend uses `HashRouter`, so you do NOT need SPA rewrite rules for deep links.
 
 ## Local development (optional)
 
