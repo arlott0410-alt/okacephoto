@@ -9,7 +9,7 @@ workers_dev = false
 [[d1_databases]]
 binding = "DB"
 database_name = "okacephoto"
-database_id = "REPLACE_ME"
+database_id = "48a89676-2dcd-4d67-8681-a945f0466481"
 
 [[r2_buckets]]
 binding = "ASSETS_BUCKET"
