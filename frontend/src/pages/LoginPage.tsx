@@ -1,10 +1,15 @@
 import React, { useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 export default function LoginPage() {
   const { login, loading, error } = useAuth();
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const navigate = useNavigate();
+  const loc = useLocation();
+
+  const from = (loc.state as any)?.from ? String((loc.state as any).from) : "/app/upload";
 
   const canSubmit = useMemo(() => password.trim().length > 0 && !busy && !loading, [password, busy, loading]);
 
@@ -24,7 +29,7 @@ export default function LoginPage() {
               setBusy(true);
               try {
                 await login(password);
-                // Redirect is handled by RequireAuth once loggedIn becomes true.
+                navigate(from, { replace: true });
               } finally {
                 setBusy(false);
               }
