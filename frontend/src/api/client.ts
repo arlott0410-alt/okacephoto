@@ -25,7 +25,15 @@ export type ApiFolder = {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string | undefined;
 
 function fullUrl(path: string) {
-  if (!API_BASE_URL) return path;
+  if (!API_BASE_URL) {
+    // In production, API base URL must be set; otherwise requests will go to the Pages origin and fail.
+    // For local development, relative URLs may still work.
+    const isLocal = typeof window !== "undefined" && window.location.hostname.includes("localhost");
+    if (!isLocal) {
+      throw new Error("Missing `VITE_API_BASE_URL`. Set it in Cloudflare Pages env vars (e.g. https://api.yourdomain.com).");
+    }
+    return path;
+  }
   return `${API_BASE_URL.replace(/\/+$/, "")}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 

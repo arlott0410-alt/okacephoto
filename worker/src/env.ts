@@ -20,6 +20,14 @@ export type Env = {
   COOKIE_SIGNING_SECRET: string;
 };
 
+function normalizeEnvString(v: unknown) {
+  if (typeof v !== "string") return v;
+  const trimmed = v.trim();
+  // Many people copy values like `"secret"` into the Dashboard fields.
+  // Strip wrapping quotes to avoid mismatches.
+  return trimmed.replace(/^["'](.*)["']$/, "$1");
+}
+
 export function getEnv(env: Record<string, unknown>): Env {
   // Cloudflare Workers inject bindings + env vars into `env` as a plain object.
   const required = [
@@ -44,6 +52,10 @@ export function getEnv(env: Record<string, unknown>): Env {
     }
   }
 
-  return env as unknown as Env;
+  const normalized: Record<string, unknown> = { ...env };
+  for (const k of required) {
+    normalized[k] = normalizeEnvString(normalized[k]);
+  }
+  return normalized as unknown as Env;
 }
 
