@@ -38,7 +38,7 @@ export default function FoldersPage() {
             <label>Create folder</label>
             <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g. Laos 2026" />
           </div>
-          <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: 2 }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
             <button
               className="btn btn-accent"
               type="button"

@@ -211,6 +211,9 @@ export default function UploadPage() {
             <div>
               <div
                 className="dropzone"
+                role="button"
+                tabIndex={0}
+                aria-label="Drop images here or click to select files"
                 onDragOver={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -219,6 +222,13 @@ export default function UploadPage() {
                   e.preventDefault();
                   e.stopPropagation();
                   if (e.dataTransfer?.files) addFiles(e.dataTransfer.files);
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                  }
                 }}
               >
                 <div style={{ fontWeight: 700 }}>Drop images here</div>
