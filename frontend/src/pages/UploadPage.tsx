@@ -76,6 +76,8 @@ export default function UploadPage() {
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
 
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const [compressionMode, setCompressionMode] = useState<CompressionMode>("compress-webp");
   const [preserveQuality, setPreserveQuality] = useState(true);
 
@@ -84,10 +86,11 @@ export default function UploadPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
+    if (!showAdvanced) return;
     apiGetFolders()
       .then((r) => setFolders(r.folders))
       .catch(() => setFolders([]));
-  }, []);
+  }, [showAdvanced]);
 
   const canUpload = queuedFiles.length > 0;
 
@@ -306,63 +309,93 @@ export default function UploadPage() {
             </div>
 
             <div>
-              <div className="field">
-                <label>Folder (optional)</label>
-                <select value={folderId} onChange={(e) => setFolderId(e.target.value)}>
-                  <option value="">No folder</option>
-                  {folders.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {!showAdvanced ? (
+                <>
+                  <div className="field" style={{ marginTop: 0 }}>
+                    <label>Upload mode</label>
+                    <div style={{ padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 12, background: "rgba(255,255,255,0.05)" }}>
+                      {compressionMode === "original" ? "Original file" : "WebP + compression"}
+                      <span className="muted" style={{ fontSize: 12 }}>
+                        {" "}
+                        ({preserveQuality ? "high quality" : "smaller size"})
+                      </span>
+                    </div>
+                  </div>
 
-              <div className="field">
-                <label>Tags (optional)</label>
-                <input
-                  value={tagsInput}
-                  onChange={(e) => setTagsInput(e.target.value)}
-                  placeholder="e.g. wedding, portrait, 2026"
-                />
-              </div>
+                  <div className="field">
+                    <button className="btn btn-accent" type="button" onClick={() => setShowAdvanced(true)} style={{ width: "100%" }}>
+                      Advanced options
+                    </button>
+                  </div>
 
-              <div className="field">
-                <label>Alt text (optional)</label>
-                <input value={altText} onChange={(e) => setAltText(e.target.value)} placeholder="Short description for accessibility" />
-              </div>
+                  <div style={{ marginTop: 6 }} className="muted">
+                    Upload works with only images; metadata is optional.
+                  </div>
+                  <div style={{ height: 12 }} />
+                </>
+              ) : null}
 
-              <div className="field">
-                <label>Title (optional)</label>
-                <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Optional display title" />
-              </div>
+              {showAdvanced ? (
+                <>
+                  <div className="field">
+                    <label>Folder (optional)</label>
+                    <select value={folderId} onChange={(e) => setFolderId(e.target.value)}>
+                      <option value="">No folder</option>
+                      {folders.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-              <div className="field">
-                <label>Note (optional)</label>
-                <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Internal note (kept in metadata)" />
-              </div>
+                  <div className="field">
+                    <label>Tags (optional)</label>
+                    <input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="e.g. wedding, portrait, 2026" />
+                  </div>
 
-              <div className="hr" />
+                  <div className="field">
+                    <label>Alt text (optional)</label>
+                    <input value={altText} onChange={(e) => setAltText(e.target.value)} placeholder="Short description for accessibility" />
+                  </div>
 
-              <div className="field">
-                <label>Upload mode</label>
-                <select value={compressionMode} onChange={(e) => setCompressionMode(e.target.value as CompressionMode)}>
-                  <option value="original">Keep original file</option>
-                  <option value="compress-webp">Compress + convert to WebP</option>
-                </select>
-              </div>
+                  <div className="field">
+                    <label>Title (optional)</label>
+                    <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Optional display title" />
+                  </div>
 
-              <div className="field" style={{ marginTop: -6 }}>
-                <label>Preserve quality (higher quality)</label>
-                <select
-                  value={preserveQuality ? "yes" : "no"}
-                  onChange={(e) => setPreserveQuality(e.target.value === "yes")}
-                  disabled={compressionMode === "original"}
-                >
-                  <option value="yes">Yes</option>
-                  <option value="no">More compression</option>
-                </select>
-              </div>
+                  <div className="field">
+                    <label>Note (optional)</label>
+                    <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Internal note (kept in metadata)" />
+                  </div>
+
+                  <div className="hr" />
+
+                  <div className="field">
+                    <label>Upload mode</label>
+                    <select value={compressionMode} onChange={(e) => setCompressionMode(e.target.value as CompressionMode)}>
+                      <option value="original">Keep original file</option>
+                      <option value="compress-webp">Compress + convert to WebP</option>
+                    </select>
+                  </div>
+
+                  <div className="field" style={{ marginTop: -6 }}>
+                    <label>Preserve quality (higher quality)</label>
+                    <select value={preserveQuality ? "yes" : "no"} onChange={(e) => setPreserveQuality(e.target.value === "yes")} disabled={compressionMode === "original"}>
+                      <option value="yes">Yes</option>
+                      <option value="no">More compression</option>
+                    </select>
+                  </div>
+
+                  <div style={{ height: 8 }} />
+
+                  <button className="btn" type="button" onClick={() => setShowAdvanced(false)} style={{ width: "100%" }}>
+                    Hide advanced
+                  </button>
+
+                  <div style={{ height: 12 }} />
+                </>
+              ) : null}
 
               <div style={{ height: 10 }} />
 
