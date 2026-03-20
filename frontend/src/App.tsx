@@ -24,7 +24,10 @@ function TopBar() {
 
   useEffect(() => {
     localStorage.setItem("theme", theme);
-    document.body.classList.toggle("theme-light", theme === "light");
+    const isLight = theme === "light";
+    document.body.classList.toggle("theme-light", isLight);
+    // Also set on <html> to ensure CSS variable overrides always apply.
+    document.documentElement.classList.toggle("theme-light", isLight);
   }, [theme]);
 
   return (
