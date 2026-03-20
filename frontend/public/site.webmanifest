@@ -1,0 +1,17 @@
+{
+  "name": "okacephoto",
+  "short_name": "okacephoto",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#6aa6ff"
+}
+

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="64" y1="64" x2="448" y2="448" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6aa6ff"/>
+      <stop offset="1" stop-color="#56e3a5"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square brand mark -->
+  <rect x="64" y="64" width="384" height="384" rx="96" fill="url(#g)"/>
+  <!-- Camera body -->
+  <path
+    d="M188 176c10 0 20-9 30-24 7-12 17-18 29-18h38c12 0 22 6 29 18 10 15 20 24 30 24h19c20 0 36 16 36 36v176c0 20-16 36-36 36H169c-20 0-36-16-36-36V212c0-20 16-36 36-36h19z"
+    fill="#0b1220"
+    opacity="0.22"
+  />
+  <path
+    d="M188 176c10 0 20-9 30-24 7-12 17-18 29-18h38c12 0 22 6 29 18 10 15 20 24 30 24h19c20 0 36 16 36 36v176c0 20-16 36-36 36H169c-20 0-36-16-36-36V212c0-20 16-36 36-36h19z"
+    fill="#0b1220"
+  />
+  <!-- Lens -->
+  <circle cx="256" cy="292" r="92" fill="#0b1220" stroke="#ffffff" stroke-width="20"/>
+  <circle cx="256" cy="292" r="58" fill="#0b1220" stroke="#6aa6ff" stroke-width="18"/>
+  <!-- Highlight -->
+  <path d="M218 252c12-20 35-34 61-34 6 0 12 1 18 2" fill="none" stroke="#56e3a5" stroke-width="14" stroke-linecap="round"/>
+</svg>
+
