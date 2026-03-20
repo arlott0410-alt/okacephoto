@@ -13,6 +13,7 @@ type UploadItem = {
   error?: string;
   asset?: ApiAsset;
 };
+type CompressionMode = "original" | "compress-webp";
 
 const API_UPLOAD_PATH = "/api/assets";
 
@@ -38,23 +39,32 @@ async function readImageDimensions(blob: Blob): Promise<{ width: number; height:
   }
 }
 
-async function maybeCompressImage(input: File, opts: { compress: boolean; preserveQuality: boolean }) {
-  if (!opts.compress) return input;
-  if (input.type !== "image/jpeg" && input.type !== "image/webp") return input;
+function withNewExtension(filename: string, ext: string) {
+  const idx = filename.lastIndexOf(".");
+  if (idx <= 0) return `${filename}.${ext}`;
+  return `${filename.slice(0, idx)}.${ext}`;
+}
+
+async function maybeCompressImage(input: File, opts: { mode: CompressionMode; preserveQuality: boolean }) {
+  if (opts.mode === "original") return input;
 
   const maxWidthOrHeight = opts.preserveQuality ? 2800 : 1600;
   const quality = opts.preserveQuality ? 0.92 : 0.78;
+  const isImageForCompression = input.type === "image/jpeg" || input.type === "image/png" || input.type === "image/webp";
+  if (!isImageForCompression) return input;
+
+  const targetFileType = opts.mode === "compress-webp" ? "image/webp" : input.type;
 
   const compressed = await imageCompression(input, {
     maxWidthOrHeight: maxWidthOrHeight,
     initialQuality: quality,
     useWebWorker: true,
-    // Keep same file type when possible.
-    fileType: input.type as any
+    fileType: targetFileType as any
   });
 
-  // Re-wrap as a File to preserve filename and mime.
-  const out = new File([compressed], input.name, { type: (compressed as any).type ?? input.type });
+  const outType = (compressed as any).type ?? targetFileType ?? input.type;
+  const outName = outType === "image/webp" ? withNewExtension(input.name, "webp") : input.name;
+  const out = new File([compressed], outName, { type: outType });
   return out;
 }
 
@@ -66,7 +76,7 @@ export default function UploadPage() {
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
 
-  const [compressEnabled, setCompressEnabled] = useState(true);
+  const [compressionMode, setCompressionMode] = useState<CompressionMode>("compress-webp");
   const [preserveQuality, setPreserveQuality] = useState(true);
 
   const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
@@ -171,7 +181,7 @@ export default function UploadPage() {
         );
 
         try {
-          const compressed = await maybeCompressImage(file, { compress: compressEnabled, preserveQuality });
+          const compressed = await maybeCompressImage(file, { mode: compressionMode, preserveQuality });
           const asset = await uploadOne(compressed, {
             ...metaBase,
             itemId,
@@ -335,10 +345,10 @@ export default function UploadPage() {
               <div className="hr" />
 
               <div className="field">
-                <label>Client-side compression</label>
-                <select value={compressEnabled ? "yes" : "no"} onChange={(e) => setCompressEnabled(e.target.value === "yes")}>
-                  <option value="yes">Enabled</option>
-                  <option value="no">Disabled</option>
+                <label>Upload mode</label>
+                <select value={compressionMode} onChange={(e) => setCompressionMode(e.target.value as CompressionMode)}>
+                  <option value="original">Keep original file</option>
+                  <option value="compress-webp">Compress + convert to WebP</option>
                 </select>
               </div>
 
@@ -347,7 +357,7 @@ export default function UploadPage() {
                 <select
                   value={preserveQuality ? "yes" : "no"}
                   onChange={(e) => setPreserveQuality(e.target.value === "yes")}
-                  disabled={!compressEnabled}
+                  disabled={compressionMode === "original"}
                 >
                   <option value="yes">Yes</option>
                   <option value="no">More compression</option>
