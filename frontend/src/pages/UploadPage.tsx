@@ -71,26 +71,17 @@ async function maybeCompressImage(input: File, opts: { mode: CompressionMode; pr
 export default function UploadPage() {
   const [folders, setFolders] = useState<ApiFolder[]>([]);
   const [folderId, setFolderId] = useState<string | "">("");
-  const [tagsInput, setTagsInput] = useState("");
-  const [altText, setAltText] = useState("");
-  const [title, setTitle] = useState("");
-  const [note, setNote] = useState("");
-
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
   const [compressionMode, setCompressionMode] = useState<CompressionMode>("compress-webp");
-  const [preserveQuality, setPreserveQuality] = useState(true);
 
   const [queuedFiles, setQueuedFiles] = useState<File[]>([]);
   const [items, setItems] = useState<UploadItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (!showAdvanced) return;
     apiGetFolders()
       .then((r) => setFolders(r.folders))
       .catch(() => setFolders([]));
-  }, [showAdvanced]);
+  }, []);
 
   const canUpload = queuedFiles.length > 0;
 
@@ -109,14 +100,15 @@ export default function UploadPage() {
     );
   }
 
-  async function uploadOne(file: File, meta: { folderId: string | null; tagsInput: string; altText: string; title: string; note: string; onProgress: (p: number) => void; itemId: string }) {
+  async function uploadOne(file: File, meta: { folderId: string | null; onProgress: (p: number) => void }) {
     const form = new FormData();
     form.append("file", file, file.name);
     form.append("folderId", meta.folderId ?? "");
-    form.append("tags", meta.tagsInput ?? "");
-    form.append("altText", meta.altText ?? "");
-    form.append("title", meta.title ?? "");
-    form.append("note", meta.note ?? "");
+    // Metadata is optional for this simplified UX.
+    form.append("tags", "");
+    form.append("altText", "");
+    form.append("title", "");
+    form.append("note", "");
     // width/height computed after compression
 
     const dims = await readImageDimensions(file);
@@ -165,8 +157,6 @@ export default function UploadPage() {
     if (!currentFiles.length) return;
 
     const folder = folderId || null;
-    const tagsStr = tagsInput;
-    const metaBase = { folderId: folder, tagsInput: tagsStr, altText, title, note };
 
     // Concurrency-limited uploads for better UX.
     const concurrency = Math.min(3, currentFiles.length);
@@ -184,10 +174,9 @@ export default function UploadPage() {
         );
 
         try {
-          const compressed = await maybeCompressImage(file, { mode: compressionMode, preserveQuality });
+          const compressed = await maybeCompressImage(file, { mode: compressionMode, preserveQuality: true });
           const asset = await uploadOne(compressed, {
-            ...metaBase,
-            itemId,
+            folderId: folder,
             onProgress: (p) => setItems((prev) => prev.map((it) => (it.id === itemId ? { ...it, progress: p } : it)))
           });
 
@@ -309,93 +298,31 @@ export default function UploadPage() {
             </div>
 
             <div>
-              {!showAdvanced ? (
-                <>
-                  <div className="field" style={{ marginTop: 0 }}>
-                    <label>Upload mode</label>
-                    <div style={{ padding: "10px 12px", border: "1px solid var(--border)", borderRadius: 12, background: "rgba(255,255,255,0.05)" }}>
-                      {compressionMode === "original" ? "Original file" : "WebP + compression"}
-                      <span className="muted" style={{ fontSize: 12 }}>
-                        {" "}
-                        ({preserveQuality ? "high quality" : "smaller size"})
-                      </span>
-                    </div>
-                  </div>
+              <div className="field">
+                <label>Folder (optional)</label>
+                <select value={folderId} onChange={(e) => setFolderId(e.target.value)}>
+                  <option value="">No folder</option>
+                  {folders.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                  <div className="field">
-                    <button className="btn btn-accent" type="button" onClick={() => setShowAdvanced(true)} style={{ width: "100%" }}>
-                      Advanced options
-                    </button>
-                  </div>
+              <div className="field">
+                <label>Compress or original</label>
+                <select value={compressionMode} onChange={(e) => setCompressionMode(e.target.value as CompressionMode)}>
+                  <option value="compress-webp">Compress to WebP</option>
+                  <option value="original">Keep original file</option>
+                </select>
+              </div>
 
-                  <div style={{ marginTop: 6 }} className="muted">
-                    Upload works with only images; metadata is optional.
-                  </div>
-                  <div style={{ height: 12 }} />
-                </>
-              ) : null}
+              <div style={{ marginTop: 6 }} className="muted">
+                Metadata is optional (not required).
+              </div>
 
-              {showAdvanced ? (
-                <>
-                  <div className="field">
-                    <label>Folder (optional)</label>
-                    <select value={folderId} onChange={(e) => setFolderId(e.target.value)}>
-                      <option value="">No folder</option>
-                      {folders.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="field">
-                    <label>Tags (optional)</label>
-                    <input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="e.g. wedding, portrait, 2026" />
-                  </div>
-
-                  <div className="field">
-                    <label>Alt text (optional)</label>
-                    <input value={altText} onChange={(e) => setAltText(e.target.value)} placeholder="Short description for accessibility" />
-                  </div>
-
-                  <div className="field">
-                    <label>Title (optional)</label>
-                    <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Optional display title" />
-                  </div>
-
-                  <div className="field">
-                    <label>Note (optional)</label>
-                    <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Internal note (kept in metadata)" />
-                  </div>
-
-                  <div className="hr" />
-
-                  <div className="field">
-                    <label>Upload mode</label>
-                    <select value={compressionMode} onChange={(e) => setCompressionMode(e.target.value as CompressionMode)}>
-                      <option value="original">Keep original file</option>
-                      <option value="compress-webp">Compress + convert to WebP</option>
-                    </select>
-                  </div>
-
-                  <div className="field" style={{ marginTop: -6 }}>
-                    <label>Preserve quality (higher quality)</label>
-                    <select value={preserveQuality ? "yes" : "no"} onChange={(e) => setPreserveQuality(e.target.value === "yes")} disabled={compressionMode === "original"}>
-                      <option value="yes">Yes</option>
-                      <option value="no">More compression</option>
-                    </select>
-                  </div>
-
-                  <div style={{ height: 8 }} />
-
-                  <button className="btn" type="button" onClick={() => setShowAdvanced(false)} style={{ width: "100%" }}>
-                    Hide advanced
-                  </button>
-
-                  <div style={{ height: 12 }} />
-                </>
-              ) : null}
+              <div style={{ height: 12 }} />
 
               <div style={{ height: 10 }} />
 
@@ -421,10 +348,8 @@ export default function UploadPage() {
                 onClick={() => {
                   setQueuedFiles([]);
                   setItems([]);
-                  setTagsInput("");
-                  setAltText("");
-                  setTitle("");
-                  setNote("");
+                  setFolderId("");
+                  setCompressionMode("compress-webp");
                 }}
                 style={{ width: "100%" }}
               >
@@ -432,7 +357,7 @@ export default function UploadPage() {
               </button>
 
               <div style={{ marginTop: 10 }} className="muted">
-                <span style={{ opacity: 0.85 }}>Tip:</span> keep alt/title concise for best embed UX.
+                <span style={{ opacity: 0.85 }}>Tip:</span> you only need to pick a folder (optional) and upload.
               </div>
             </div>
           </div>
